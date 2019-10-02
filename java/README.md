@@ -142,26 +142,10 @@ ROOTKITS_suspicious_literals.getSuspiciousLiterals(cpg)
 
 
 ## SCA - Get CVE Feeds for SCA
-
+```
 // Run Ocular in autonomous mode 
 ./ocular.sh --import scripts/deps.sc --script scripts/sca/bom.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,projectRootDir=/Users/chetanconikee/demoenv/tarpit,ossIndexUri=https://ossindex.sonatype.org/api/v3/component-report,ossAuthToken=Y2hldGFuQHNoaWZ0bGVmdC5pbzoyZjc1YzgyYmIxNGRjYmY1NzRmOTkxYmE3MTEyZjA2NDE5MWFhOWY2,outFile=bomcve.json
 
 //Review results ...
 cat bomcve.json | jq 
-
-## Premium Contextual SCA 
-```
-// Refer to 
-// 1. https://medium.com/@chetan_conikee/contextual-software-composition-analysis-33f4e85d8b74
-// 2. https://medium.com/@chetan_conikee/contextual-software-composition-analysis-using-ocular-c9ce52f56bf0
-
-// Request Chetan for a NexusIQ demo license and fire up the service on local instance 
-./demo.sh from NexusIQ local server
-
-// Run Ocular in autonomous mode 
-./ocular.sh --import scripts/deps.sc --script scripts/sca_premium/sca_context.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,projectRootDir=/Users/chetanconikee/demoenv/tarpit,iqIntegration=true,iqServerUri=http://localhost:8070,iqAuthToken=YWRtaW46YWRtaW4xMjM=,iqAppId=tarpit,ossIndexUri=https://ossindex.sonatype.org/api/v3/component-report,ossAuthToken=Y2hldGFuQHNoaWZ0bGVmdC5pbzoyZjc1YzgyYmIxNGRjYmY1NzRmOTkxYmE3MTEyZjA2NDE5MWFhOWY2,primaryNameSpace=io.shiftleft,outFile=scacontext.json
-
-
-//Review results ...
-cat scacontext.json | jq 
 ```
