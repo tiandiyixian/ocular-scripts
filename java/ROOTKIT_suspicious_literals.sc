@@ -38,6 +38,11 @@ import io.circe.optics.JsonPath._
 
 import scala.collection.mutable.ListBuffer
 
+// Report title and description
+val title = "[ROOTKIT] Detect Suspicious Literals and it's associated flows"
+val description = "A rootkit is a clandestine computer program designed to provide continued privileged access to a computer while actively hiding its presence. Malicious developers are the ultimate insiders. With a very small number of lines of Java, they can steal all your data, corrupt systems, install system level attacks, and cover their tracks. A trojaned Struts or Log4j library could affect most of the financial industry at once."
+val recommendation="Identify hard-coded encoded patterns in source code and thereafter track the information flow path to assess what is being done with it. Use the report to tack whether these encoded patterns are touching a sensitive sink (as a consquence of being triggered at a scheduled interval [or] request workflow)." 
+
 object CodeType extends Enumeration {
     type CodeType = Value
     val javaCode = Value("JAVA_CODE")
@@ -49,10 +54,11 @@ object CodeType extends Enumeration {
 import CodeType.CodeType
 
 case class Encoding(encoded : String, decoded : String, codeType : CodeType)
-case class RootKit(name : String, tagPattern : String, encoded : Option[Encoding])
 case class Tag(name : String, tagRegex : String, encoded : Option[Encoding])
 
-case class Results(encoded : String, decoded : String, codeType : String, flows : List[traces.Flows])
+case class RootKit(encoded : String, decoded : String, codeType : String, flows : List[traces.Flows])
+
+case class Result(title : String, description : String, recommendation : String, rootKits : List[RootKit])
 
 case class Literals(matchedVal : String, 
     tags : List[Tag],
@@ -71,7 +77,7 @@ def isSuspiciousCommand(command : String) = {
 
 def getSuspiciousLiterals(cpg: io.shiftleft.codepropertygraph.Cpg) = {
 
-    var resultsList = new ListBuffer[Results]()
+    var rootKits = new ListBuffer[RootKit]()
 
     val javaParser = new JavaParser()
     val base64EncodingPattern = token_patterns.base64Pattern
@@ -111,7 +117,7 @@ def getSuspiciousLiterals(cpg: io.shiftleft.codepropertygraph.Cpg) = {
                     val source = cpg.literal.code(literalExpr)
                     val sink = cpg.method.fullName(taint_tags.sinks("FILE")).parameter
                     val f = traces.getFlowTrace(sink.reachableBy(source).flows.passes(taint_tags.sinks("DECODE")))
-                    resultsList += Results(e.encoded,e.decoded,"JAVA_CODE",f)
+                    rootKits += RootKit(e.encoded,e.decoded,"JAVA_CODE",f)
                 }
             case CodeType.shellScript => 
                 encodings foreach { e => 
@@ -119,7 +125,7 @@ def getSuspiciousLiterals(cpg: io.shiftleft.codepropertygraph.Cpg) = {
                     val source = cpg.literal.code(literalExpr)
                     val sink = cpg.method.fullName(taint_tags.sinks("COMMAND_INJECTION")).parameter
                     val f = traces.getFlowTrace(sink.reachableBy(source).flows.passes(taint_tags.sinks("DECODE")))
-                    resultsList += Results(e.encoded,e.decoded,"SHELL_SCRIPT",f)
+                    rootKits += RootKit(e.encoded,e.decoded,"SHELL_SCRIPT",f)
                 }
             case CodeType.dangerousCommand =>
                  encodings foreach { e => 
@@ -127,11 +133,22 @@ def getSuspiciousLiterals(cpg: io.shiftleft.codepropertygraph.Cpg) = {
                     val source = cpg.literal.code(literalExpr)
                     val sink = cpg.method.fullName(taint_tags.sinks("COMMAND_INJECTION")).parameter
                     val f = traces.getFlowTrace(sink.reachableBy(source).flows.passes(taint_tags.sinks("DECODE")))
-                    resultsList += Results(e.encoded,e.decoded,"DANGEROUS_COMMAND",f)
+                    rootKits += RootKit(e.encoded,e.decoded,"DANGEROUS_COMMAND",f)
                 }     
         }
     } 
-    resultsList.asJson.spaces2
+    Result(title, 
+        description,
+        recommendation, 
+        rootKits.toList).asJson.spaces2
+}
+
+def createResults(jarFile: String, dirPath: String) = {
+    val rootKitFile = dirPath + java.io.File.separator + "ROOTKITS_suspicious_literals.json"
+    val writer = new java.io.PrintWriter(new java.io.File(rootKitFile))
+    writer.write(getSuspiciousLiterals(cpg))
+    writer.close()
+    rootKitFile
 }
 
 @doc("")

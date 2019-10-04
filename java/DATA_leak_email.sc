@@ -27,9 +27,26 @@ import io.circe.Json
 import cats.syntax.either._
 import io.circe.optics.JsonPath._
 
+// Report title and description
+val title = "[DATA] Sensitive Environment variables leaking over EMAIL channel"
+val description = "Every application that connects to the Internet utilizes data or key (secret) for identification of their customers and authorization to third-party services. These keys typically identify the app or project that’s making a call to the Application Programming Interface (API) and authorize it for access. Typically, an API key gives full access to every operation an API can perform, including writing new data or deleting existing data. In order to to assess and mitigate the risks associated with information leaks, it’s important to have a deep understanding of how your secrets may be exposed. Even if the repository is private, it should never be used to store sensitive keys and secrets. This report analyzes CPG to discover references to environment variables and thereafter conducts data-flow analysis to identify if such variables are leaked on EMAIL (transport) channel without adequate redaction or obfuscation."
+val recommendation="The purpose of obfuscation is to make something harder to understand, usually for the purposes of making it more difficult to attack or to copy. Apply effective redaction/obfuscation schemes on data flow paths." 
+
+case class Result(title : String, description : String, recommendation : String, flows : List[traces.Flows])
+
 def isPIILeakingToEmail(cpg: io.shiftleft.codepropertygraph.Cpg, nameSpace : String, redactFunction : Option[String]) = {
-    val resultsJson = data.isPIILeakingAsJSON(cpg, nameSpace, taint_tags.sinks("EMAIL"), redactFunction)
-    resultsJson
+    Result(title, 
+        description, 
+        recommendation,
+        data.isPIILeaking(cpg, nameSpace, taint_tags.sinks("EMAIL"), redactFunction)).asJson.spaces2
+}
+
+def createResults(jarFile: String, nameSpace : String, dirPath: String) = {
+    val dlEmail = dirPath + java.io.File.separator + "DATA_leak_email.json"
+    val writer = new java.io.PrintWriter(new java.io.File(dlEmail))
+    writer.write(isPIILeakingToEmail(cpg, nameSpace, None))
+    writer.close()
+    dlEmail
 }
 
 @doc("")

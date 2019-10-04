@@ -27,13 +27,30 @@ import io.circe.Json
 import cats.syntax.either._
 import io.circe.optics.JsonPath._
 
+// Report title and description
+val title = "[DATA] Detect for (IDOR) Insecure Direct Object Reference"
+val description = "Insecure Direct Object Reference (called IDOR from here) occurs when a application exposes a reference to an internal implementation object. Using this way, it reveals the real identifier and format/pattern used of the element in the storage backend side. The most common example of it (altrough is not limited to this one) is a record identifier in a storage system (database, filesystem and so on). There can be many variables in the application such as “id”, “pid”, “uid”. Although these values are often seen as HTTP parameters, they can also be found in hyperlinks embedded in emails, HTTP headers and cookies. The attacker can access, edit or delete any of other users’ objects by changing the values. This vulnerability is called IDOR."
+val recommendation="The proposal use a hash to replace the direct identifier. This hash is salted with a value defined at application level in order support topology in which the application is deployed in multi-instances mode (case for production). Reference : https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.md#proposition"
+
+case class Result(title : String, description : String, recommendation : String, flows : List[traces.Flows])
+
 def isPIILeakingToEmail(cpg: io.shiftleft.codepropertygraph.Cpg, nameSpace : String, redactFunction : Option[String]) = {
-    val resultsJson = data.isPIILeakingAsJSON(cpg, nameSpace, taint_tags.sinks("EMAIL"), redactFunction)
-    resultsJson
+    Result(title, 
+        description, 
+        recommendation,
+        data.isPIILeaking(cpg, nameSpace, taint_tags.sinks("EMAIL"), redactFunction)).asJson.spaces2
 }
 
 def isIDORToEmail(cpg: io.shiftleft.codepropertygraph.Cpg, nameSpace : String, randomFunction : Option[String]) = {
     isPIILeakingToEmail(cpg, nameSpace, randomFunction)
+}
+
+def createResults(jarFile: String, nameSpace : String, dirPath: String) = {
+    val idorFile = dirPath + java.io.File.separator + "BIZFLAWS_idor_email.json"
+    val writer = new java.io.PrintWriter(new java.io.File(idorFile))
+    writer.write(isIDORToEmail(cpg, nameSpace, None))
+    writer.close()
+    idorFile
 }
 
 @doc("")

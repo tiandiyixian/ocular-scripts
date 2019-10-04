@@ -19,7 +19,6 @@ import $ivy.`io.circe::circe-parser:0.10.0`
 import io.circe.Json
 import io.circe.syntax._
 import io.circe.generic.auto._
-import scala.collection.mutable.ListBuffer
 
 
 case class FlowTrace(methodName :String, parameter :String,fileName :String, linNumber :String)
@@ -28,9 +27,8 @@ case class Flows(source : String, sink : String, flowTrace : List[FlowTrace])
 def locations(flow: nodes.NewFlow): List[nodes.NewLocation] =
      flow.points.map(_.elem.location.asInstanceOf[nodes.NewLocation])
 
-
 def getFlowTrace(flows: io.shiftleft.dataflowengine.language.NewFlow) = {
-  var flowBuffer = new ListBuffer[FlowTrace]()
+  
   val flowList = flows.l
   val newLocations = flowList.map { f => 
     (f.source.method.fullName,
@@ -50,7 +48,6 @@ def getFlowTrace(flows: io.shiftleft.dataflowengine.language.NewFlow) = {
 }
 
 def getFlowTraceAsJson(flows: io.shiftleft.dataflowengine.language.NewFlow) = {
-  var flowBuffer = new ListBuffer[FlowTrace]()
   val flowList = flows.l
   val newLocations = flowList.map { f => 
     (f.source.method.fullName,

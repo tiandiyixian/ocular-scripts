@@ -33,8 +33,9 @@ import $file.^.java.utils.token_patterns
 import $file.^.java.utils.data
 
 // Report title and description
-val title = "[DATA] Annotation Based Data Mapping Report"
-val description = "This report contains a map of custom java annotation based tracked data highlighting the tracked memebers, their classes, information whether they belong to a standard data model as well as information about where the data sinks to (network, log, etc.)"
+val title = "[DATA] Annotation Based Data Mapping Report (Use cases : CCPA, GDPR, SOC-1/2)"
+val description = "Right now, protecting data can be difficult. It’s often spread across and copied to a number of different environments, and it’s hard to know what to restrict it to and where it’s located. This data sprawl inevitably leaves organizations open to data breaches, and not just from hackers either. In its 2017 end of year review of data breaches, the Identity Theft Resource Center revealed that ~10% of breaches were caused by employee error or negligence, ~7% were a result of accidental exposure, and ~5% were down to insider theft. Using annotation as a tracking beacon, this report plots all pathways of objects representing PII data from inside the application to outbound channels (FILESYSTE, NETWORK, LOGGER, etc)"
+val recommendation="Idenitify data flow semantics of all annotated data elements. Verify if every user defined type inherits from a base model with appropriate controls in place." 
 
 // Script help and usage text
 val usage = """The Annotation Based Data Mapping script a map of custom java annotation 
@@ -102,18 +103,13 @@ Sample Output
 """
 
 case class SinkInfo(isSinkingTo: Boolean, sinkMethod : Option[String])
-case class AnnotatedModel(name : String , modelName : String, members : List[String], baseTypes : List[String], isToStringOverriden : Boolean, sinkChannels : Map[String, SinkInfo])
-
-// TODO FIXME: This does not work since the JSON is an array of dicts and not a simple dict 
-// Utility method that adds script metadata to output JSON
-def addMetaDataToJson(json: String) : String = {
-    val parsedJson = parser.parse(json)
-    val jsonObj = parsedJson match {
-       case Right(value) => value.asObject
-       case Left(error) => throw error
-    }
-    jsonObj.map(_.+:("description", description.asJson).+:("title", title.asJson)).asJson.spaces2
-}
+case class AnnotatedModel(name : String , 
+                          modelName : String, 
+                          members : List[String], 
+                          baseTypes : List[String], 
+                          isToStringOverriden : Boolean, 
+                          sinkChannels : Map[String, SinkInfo])
+case class Result(title : String, description : String, recommendation : String, annotatedModels : List[AnnotatedModel])
 
 def isSinkingInto(cpg: io.shiftleft.codepropertygraph.Cpg, sinkList : List[String], model : String) = {
     sinkList.map {
@@ -133,17 +129,29 @@ def isSinkingInto(cpg: io.shiftleft.codepropertygraph.Cpg, sinkList : List[Strin
 def getAnnotatedModels(cpg: io.shiftleft.codepropertygraph.Cpg, annotationType : String) = {
     val annotatedModels = cpg.annotation.code(annotationType).member.l.map {
         i => (i.name, i.start.typeDecl.fullName.head)
-    } groupBy(_._2) map { case(k,v) => AnnotatedModel(annotationType,
-    k,
-    v.map(_._1),
-    cpg.typeDecl.fullName(k).baseTypeDecl.name.l ,
-    cpg.types.fullName(k).method.name.l.filter(_.contains("toString")).size>0,
-    isSinkingInto(cpg,List("NETWORK","LOGGER","FILE","EMAIL"),k)) }
-    annotatedModels.asJson.spaces2
+    } groupBy(_._2) map { case(k,v) => 
+        AnnotatedModel(annotationType,
+                        k,
+                        v.map(_._1),
+                        cpg.typeDecl.fullName(k).baseTypeDecl.name.l ,
+                        cpg.types.fullName(k).method.name.l.filter(_.contains("toString")).size>0,
+                        isSinkingInto(cpg,List("NETWORK","LOGGER","FILE","EMAIL"),k)) 
+    }
+    Result(title, description, recommendation, annotatedModels.toList).asJson.spaces2
 }
 
 // datamapping.getAnnotatedModels(cpg, "@SensitiveRedact")
 // datamapping.getAnnotatedModels(cpg, "@SensitiveBeacon")
+
+
+def createResults(jarFile: String, dirPath: String, tracingBeacon : String) = {
+    val dataMappingFile = dirPath + java.io.File.separator + "DATA_mapping.json"
+    val writer = new java.io.PrintWriter(new java.io.File(dataMappingFile))
+    writer.write(getAnnotatedModels(cpg, tracingBeacon))
+    writer.close()
+    dataMappingFile
+}
+
 
 @doc(description)
 @main def execute(jarFile: String, 
@@ -173,9 +181,6 @@ def getAnnotatedModels(cpg: io.shiftleft.codepropertygraph.Cpg, annotationType :
     } else {
         println("Writing to OutFile : " + outFile)
         val writer = new java.io.PrintWriter(new java.io.File(outFile))
-        // TODO: FIXME when addMetaDataToJson is fixed
-        // val report = addMetaDataToJson(getAnnotatedModels(cpg, tracingBeacon))
-        // writer.write(report)
         writer.write(getAnnotatedModels(cpg, tracingBeacon))
         writer.close()
         
