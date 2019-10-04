@@ -128,16 +128,16 @@ BIZFLAWS_idor_email.isIDORToEmail(cpg, "io.shiftleft", None)
 
 ### Script Mode
 ```
-./ocular.sh --script scripts/java/ROOTKITS_suspicious_literals.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,outFile=suspicious_literals.json
+./ocular.sh --script scripts/java/ROOTKIT_suspicious_literals.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,outFile=suspicious_literals.json
 ```
 
 ### Interactive Mode
 ```
-import $file.scripts.java.ROOTKITS_suspicious_literals.sc
+import $file.scripts.java.ROOTKIT_suspicious_literals.sc
 
 // Identify all encoded literals (of Base64 encoding type) and thereafter track if it is participating in a flow leading to a dangerous SINK (passing through a BASE64 decode in transit)
 
-ROOTKITS_suspicious_literals.getSuspiciousLiterals(cpg)
+ROOTKIT_suspicious_literals.getSuspiciousLiterals(cpg)
 ```
 
 
