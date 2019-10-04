@@ -98,6 +98,7 @@ def createResults(jarFile: String, ossIndexUri : String, ossAuthToken : String, 
 
 //main function executed in scripting mode 
 @main def exec(jarFile: String, 
+    depScriptDir : String, 
     projectRootDir: String,
     ossIndexUri : String,
     ossAuthToken : String,  
@@ -125,7 +126,7 @@ def createResults(jarFile: String, ossIndexUri : String, ossAuthToken : String, 
   } 
 
   println("[+] Fetching Dependencies")
-  DependencyParser.getDependencies(projectRootDir)
+  DependencyParser.getDependencies(depScriptDir, projectRootDir)
 
   if(cpg.dependency.l.size == 0) {
        println("Error in fetching dependencies from project Root Directory " + projectRootDir + " for " + jarFile)

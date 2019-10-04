@@ -12,12 +12,12 @@ import $file.^.java.DATA_leak_tokens
 import $file.^.java.DATA_mapping
 import $file.^.java.PENTEST_attacksurface
 import $file.^.java.ROOTKIT_suspicious_literals
-import $file.^.java.SCA_bom
+
 
 @doc("")
 @main def execute(jarFile: String, 
                 outFolder: String) : Boolean = {
-    
+
     println("[+] Verify if CPG exists") 
     if(!workspace.baseCpgExists(jarFile)) {
 
@@ -42,6 +42,8 @@ import $file.^.java.SCA_bom
 
     } else {
         
+        println("[+] CPG is loaded in workspace")
+
         println("Analyzing for Rootkits ...")
         val rootkitResults = ROOTKIT_suspicious_literals.createResults(jarFile,outFolder)
         printf("[+] Saving results to %s\n", rootkitResults)
@@ -78,7 +80,8 @@ import $file.^.java.SCA_bom
         val asResults = PENTEST_attacksurface.createResults(jarFile,outFolder)
         printf("[+] Saving results to %s\n", asResults)
 
-        workspace.reset 
+        println("[+] Resetting workspace for next run")
+        workspace.reset
 
         return true
     }

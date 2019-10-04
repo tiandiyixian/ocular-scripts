@@ -144,8 +144,11 @@ ROOTKIT_suspicious_literals.getSuspiciousLiterals(cpg)
 
 ## SCA - Get components with known vulnerabilities 
 ```
-// Run Ocular in autonomous mode 
-./ocular.sh --import scripts/deps.sc --script scripts/java/SCA_bom.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,projectRootDir=/Users/chetanconikee/demoenv/tarpit,ossIndexUri=https://ossindex.sonatype.org/api/v3/component-report,ossAuthToken=Y2hldGFuQHNoaWZ0bGVmdC5pbzoyZjc1YzgyYmIxNGRjYmY1NzRmOTkxYmE3MTEyZjA2NDE5MWFhOWY2,outFile=SCA_bom.json
+
+Move `packageblacklist` file from `utils` folder to ocular distribution folder
+
+
+./ocular.sh --import scripts/deps.sc --script scripts/java/SCA_bom.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,depScriptDir=/Users/chetanconikee/bin/ocular/scripts,projectRootDir=/Users/chetanconikee/demoenv/tarpit,ossIndexUri=https://ossindex.sonatype.org/api/v3/component-report,ossAuthToken=Y2hldGFuQHNoaWZ0bGVmdC5pbzoyZjc1YzgyYmIxNGRjYmY1NzRmOTkxYmE3MTEyZjA2NDE5MWFhOWY2,outFile=SCA_bom.json
 
 //Review results ...
 cat SCA_bom.json | jq 
@@ -153,5 +156,6 @@ cat SCA_bom.json | jq
 
 ## Example - Master script to assess workload https://github.com/conikeec/tarpit
 ```
+
 ./ocular.sh --script newscripts/java/MASTER_tarpit_example.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,outFolder=/Users/chetanconikee/bin/ocular/results
 ```
