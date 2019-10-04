@@ -157,5 +157,5 @@ cat SCA_bom.json | jq
 ## Example - Master script to assess workload https://github.com/conikeec/tarpit
 ```
 
-./ocular.sh --script newscripts/java/MASTER_tarpit_example.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,outFolder=/Users/chetanconikee/bin/ocular/results
+./ocular.sh --script scripts/java/MASTER_tarpit_example.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,outFolder=/Users/chetanconikee/bin/ocular/results
 ```
