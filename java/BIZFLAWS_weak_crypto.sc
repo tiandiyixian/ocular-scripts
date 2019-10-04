@@ -1,14 +1,11 @@
 /* BIZFLAWS_weak_crypto
- *
- * Version: 0.0.1
- * Ocular Version: 0.3.34
- * Author: Chetan Conikee <chetan@shiftLeft.io>
- * Execution-mode : Internal
- * Input: Application CPG
- * Output: JSON
- * 
- * Description: 
- * 
+
+   Version: 0.0.1
+   Ocular Version: 0.3.70
+   Author: Chetan Conikee <chetan@shiftLeft.io>
+   Input: Application JAR/WAR/EAR
+   Output: JSON
+
  */
 
 import $ivy.`io.circe::circe-core:0.10.0`
@@ -38,9 +35,9 @@ def isWeakAlgorithmUsed(cpg: io.shiftleft.codepropertygraph.Cpg) = {
 
 @doc("")
 @main def execute(jarFile: String, outFile: String) : Boolean = {
-    
+
     println("[+] Verify if CPG exists") 
-    if(workspace.baseCpgExists(jarFile)) {
+    if(!workspace.baseCpgExists(jarFile)) {
 
         println("[+] Creating CPG and SP for " + jarFile) 
         createCpgAndSp(jarFile)
@@ -50,25 +47,23 @@ def isWeakAlgorithmUsed(cpg: io.shiftleft.codepropertygraph.Cpg) = {
             println("Failed to create CPG for " + jarFile)
             return false
         }
-
-        println("[+] Check if CPG is loaded")
-        if(workspace.loadedCpgs.toList.size == 0) {
-
-            println("Failed to load CPG for " + jarFile)
-            return false
-
-        } else {
-
-            println("Writing to OutFile : " + outFile)
-            val writer = new java.io.PrintWriter(new java.io.File(outFile))
-            writer.write(isWeakAlgorithmUsed(cpg))
-            writer.close()
-            
-            printf("[+] Saving results to %s\n", outFile)
-            
-            return true
-        }
     } else {
+        println("[+] Loading pre-existing CPG")
+        loadCpg(jarFile)
+    }
+    
+    println("[+] Check if CPG is loaded")
+    if(workspace.loadedCpgs.toList.size == 0) {
+        println("Failed to load CPG for " + jarFile)
         return false
+    } else {
+        println("Writing to OutFile : " + outFile)
+        val writer = new java.io.PrintWriter(new java.io.File(outFile))
+        writer.write(isWeakAlgorithmUsed(cpg))
+        writer.close()
+        
+        printf("[+] Saving results to %s\n", outFile)
+        
+        return true
     }
 }

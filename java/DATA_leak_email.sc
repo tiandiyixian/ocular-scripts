@@ -1,15 +1,11 @@
 /* DATA_leak_email.sc
- *
- * Version: 0.0.1
- * Ocular Version: 0.3.34
- * Author: Chetan Conikee <chetan@shiftLeft.io>
- * Execution-mode : Internal
- * Input: Application CPG
- * Output: JSON
- * 
- * Description: 
- * Script to identify if sensitive data is leaking on an email transport channel 
- * without encryption/redaction/obfuscation
+
+   Version: 0.0.1
+   Ocular Version: 0.3.70
+   Author: Chetan Conikee <chetan@shiftLeft.io>
+   Input: Application JAR/WAR/EAR
+   Output: JSON
+
  */
 
 import $ivy.`io.circe::circe-core:0.10.0`
@@ -43,7 +39,7 @@ def isPIILeakingToEmail(cpg: io.shiftleft.codepropertygraph.Cpg, nameSpace : Str
                 redactFunction : String) : Boolean = {
     
     println("[+] Verify if CPG exists") 
-    if(workspace.baseCpgExists(jarFile)) {
+    if(!workspace.baseCpgExists(jarFile)) {
 
         println("[+] Creating CPG and SP for " + jarFile) 
         createCpgAndSp(jarFile)
@@ -53,29 +49,27 @@ def isPIILeakingToEmail(cpg: io.shiftleft.codepropertygraph.Cpg, nameSpace : Str
             println("Failed to create CPG for " + jarFile)
             return false
         }
-
-        println("[+] Check if CPG is loaded")
-        if(workspace.loadedCpgs.toList.size == 0) {
-
-            println("Failed to load CPG for " + jarFile)
-            return false
-
-        } else {
-
-            println("Writing to OutFile : " + outFile)
-            val writer = new java.io.PrintWriter(new java.io.File(outFile))
-            if(redactFunction == "NONE") {
-                writer.write(isPIILeakingToEmail(cpg, "io.shiftleft", None))
-            } else {
-                writer.write(isPIILeakingToEmail(cpg, "io.shiftleft", Some(redactFunction)))
-            }
-            writer.close()
-            
-            printf("[+] Saving results to %s\n", outFile)
-            
-            return true
-        }
     } else {
+        println("[+] Loading pre-existing CPG")
+        loadCpg(jarFile)
+    }
+    
+    println("[+] Check if CPG is loaded")
+    if(workspace.loadedCpgs.toList.size == 0) {
+        println("Failed to load CPG for " + jarFile)
         return false
+    } else {
+        println("Writing to OutFile : " + outFile)
+        val writer = new java.io.PrintWriter(new java.io.File(outFile))
+        if(redactFunction == "NONE") {
+            writer.write(isPIILeakingToEmail(cpg, "io.shiftleft", None))
+        } else {
+            writer.write(isPIILeakingToEmail(cpg, "io.shiftleft", Some(redactFunction)))
+        }
+        writer.close()
+        
+        printf("[+] Saving results to %s\n", outFile)
+        
+        return true
     }
 }

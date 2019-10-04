@@ -1,9 +1,8 @@
 /* SCA_bom
  *
  * Version: 0.0.1
- * Ocular Version: 0.3.34
+ * Ocular Version: 0.3.70
  * Author: Chetan Conikee <chetan@shiftLeft.io>
- * Execution-mode : Internal
  * Input: Application CPG
  * Output: JSON
  * 
