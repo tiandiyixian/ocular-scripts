@@ -3,6 +3,12 @@
 ## Baseline Commands (Interactive Mode)
 
 ```
+//clone this demo repository in your local environment
+git clone https://github.com/conikeec/tarpit
+
+//build and package to create the artifact
+cd tarpit
+mvn clean compile
 
 //create CPG (Code Property Graph) for appropriate payload
 createCpgAndSp("/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war")
