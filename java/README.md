@@ -85,6 +85,7 @@ DATA_leak_envvars.areEnvTokensLeakingToLogs(cpg,None)
 ## CCPA/GDPR Data Mapping exercise
 
 ### Script Mode
+
 ```
 ./ocular.sh --script scripts/java/DATA_mapping.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,outFile=data_mapping_redact.json,tracingBeacon="@SensitiveRedact"
 
@@ -128,7 +129,7 @@ BIZFLAWS_idor_email.isIDORToEmail(cpg, "io.shiftleft", None)
 
 ### Script Mode
 ```
-./ocular.sh --script scripts/java/ROOTKITS_suspicious_literals.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,outFile=suspicious_literals.json
+./ocular.sh --script scripts/java/ROOTKIT_suspicious_literals.sc --params jarFile=/Users/chetanconikee/demoenv/tarpit/target/servlettarpit.war,outFile=suspicious_literals.json
 ```
 
 ### Interactive Mode
