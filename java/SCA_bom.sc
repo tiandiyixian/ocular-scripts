@@ -31,17 +31,24 @@ import io.circe.optics.JsonPath._
 
 import org.apache.commons.lang3.StringUtils
 
+// Report title and description
+val title = "[SCA] Software Composition Analysis"
+val description = "The SCA BOM script provides monitoring of the libraries you use in your Java project to identify the use of known vulnerable components"
+val recommendation="Based on CVE advisory upgrade components with known vulnerabilities and active CVEs"
+
 case class BOM(groupId : String, artifactId : String, version : String)
 case class BOMCVE(groupId : String, artifactId : String, version : String, cves : Json)
+
+case class Result(title : String, description : String, recommendation : String, dependencies : List[BOMCVE])
 
 implicit val recordsDecoder = deriveDecoder[BOMCVE]
 
 def getBOM(cpg: io.shiftleft.codepropertygraph.Cpg) : List[BOM] = {
         cpg.dependency.l.map { d =>
-                        (d.dependencyGroupId, d.name, d.version) 
-                } filter { d =>
-                        !d._3.equals("unknown") && !d._1.equals(None) } map { 
-                        d => BOM(d._1.get, d._2, d._3) 
+                (d.dependencyGroupId, d.name, d.version) 
+        } filter { d =>
+                !d._3.equals("unknown") && !d._1.equals(None) } map { 
+                d => BOM(d._1.get, d._2, d._3) 
         } distinct
 }
 
@@ -74,12 +81,24 @@ def getCVEsForBOM(cpg: io.shiftleft.codepropertygraph.Cpg, ossIndexUri : String,
                 BOMCVE(groupId, artifactId, version, result)
         } 
         
-        bomCVEList.asJson.spaces2
+        Result(title, 
+                description,
+                recommendation, 
+                bomCVEList).asJson.spaces2
 
+}
+
+def createResults(jarFile: String, ossIndexUri : String, ossAuthToken : String, dirPath: String) = {
+    val bom = dirPath + java.io.File.separator + "SCA_bom.json"
+    val writer = new java.io.PrintWriter(new java.io.File(bom))
+    writer.write(getCVEsForBOM(cpg, ossIndexUri, ossAuthToken))
+    writer.close()
+    bom
 }
 
 //main function executed in scripting mode 
 @main def exec(jarFile: String, 
+    depScriptDir : String, 
     projectRootDir: String,
     ossIndexUri : String,
     ossAuthToken : String,  
@@ -107,7 +126,7 @@ def getCVEsForBOM(cpg: io.shiftleft.codepropertygraph.Cpg, ossIndexUri : String,
   } 
 
   println("[+] Fetching Dependencies")
-  DependencyParser.getDependencies(projectRootDir)
+  DependencyParser.getDependencies(depScriptDir, projectRootDir)
 
   if(cpg.dependency.l.size == 0) {
        println("Error in fetching dependencies from project Root Directory " + projectRootDir + " for " + jarFile)

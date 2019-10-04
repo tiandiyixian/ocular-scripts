@@ -38,16 +38,17 @@ def isPIILeaking(cpg: io.shiftleft.codepropertygraph.Cpg,
                  to : String,
                  encryptFunction : Option[String]) = {
 
-    val sensitiveTypes = getSensitiveUserDefinedTypes(nameSpace)
-    sensitiveTypes map { s =>
+     val sensitiveTypes = getSensitiveUserDefinedTypes(nameSpace)
+    val results = sensitiveTypes map { s =>
         val sExpr = ".*" + s + ".*"
         val source = cpg.local.evalType(sExpr).referencingIdentifiers
         val sink = cpg.method.fullName(to).parameter
         encryptFunction match {
-            case Some(e) => traces.printFlows(sink.reachableBy(source).flows.passesNot(e))
-            case None => traces.printFlows(sink.reachableBy(source).flows)
+            case Some(e) => traces.getFlowTrace(sink.reachableBy(source).flows.passesNot(e))
+            case None => traces.getFlowTrace(sink.reachableBy(source).flows)
         }
-    }
+    } 
+    results.filter(!_.isEmpty).flatten
 }
 
 def isPIILeakingAsJSON(cpg: io.shiftleft.codepropertygraph.Cpg,
@@ -65,7 +66,7 @@ def isPIILeakingAsJSON(cpg: io.shiftleft.codepropertygraph.Cpg,
             case None => traces.getFlowTrace(sink.reachableBy(source).flows)
         }
     } 
-    results.filter(!_.isEmpty).asJson.spaces2
+    results.filter(!_.isEmpty).flatten.asJson.spaces2
 }
 
 
@@ -91,14 +92,14 @@ def areTokensLeaking(cpg: io.shiftleft.codepropertygraph.Cpg, to : String, encry
             case None => traces.getFlowTrace(sink.reachableBy(source).flows)
         }
     }
-    results.filter(!_.isEmpty).asJson.spaces2
+    results.filter(!_.isEmpty).flatten
 }
 
 def areEnvTokensLeaking(cpg: io.shiftleft.codepropertygraph.Cpg, to : String, encryptFunction : Option[String]) = {
     val source = cpg.method.fullName(taint_tags.sources("SYSTEM")).parameter
     val sink = cpg.method.fullName(to).parameter
     encryptFunction match {
-        case Some(e) => traces.getFlowTraceAsJson(sink.reachableBy(source).flows.passesNot(e))
-        case None => traces.getFlowTraceAsJson(sink.reachableBy(source).flows)
+        case Some(e) => traces.getFlowTrace(sink.reachableBy(source).flows.passesNot(e))
+        case None => traces.getFlowTrace(sink.reachableBy(source).flows)
     }
 }

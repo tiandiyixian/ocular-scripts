@@ -27,8 +27,26 @@ import io.circe.Json
 import cats.syntax.either._
 import io.circe.optics.JsonPath._
 
+// Report title and description
+val title = "[DATA] Hard Coded Tokens/Credentials leaking to Log File"
+val description = "Every application that connects to the Internet utilizes data or key (secret) for identification of their customers and authorization to third-party services. These keys typically identify the app or project that’s making a call to the Application Programming Interface (API) and authorize it for access. Typically, an API key gives full access to every operation an API can perform, including writing new data or deleting existing data. In order to to assess and mitigate the risks associated with information leaks, it’s important to have a deep understanding of how your secrets may be exposed. Even if the repository is private, it should never be used to store sensitive keys and secrets. This report analyzes CPG to discover hard coded tokens/credentials and thereafter conducts data-flow analysis to identify if such tokens are leaked on the log channel without adequate encryption, redaction or obfuscation"
+val recommendation="The purpose of obfuscation is to make something harder to understand, usually for the purposes of making it more difficult to attack or to copy. Apply effective redaction/obfuscation schemes on data flow paths." 
+
+case class Result(title : String, description : String, recommendation : String, flows : List[traces.Flows])
+
 def areTokensLeakingToLogs(cpg: io.shiftleft.codepropertygraph.Cpg, encryptFunction : Option[String]) = {
-    data.areTokensLeaking(cpg, taint_tags.sinks("LOGGER"), encryptFunction)
+    Result(title, 
+        description, 
+        recommendation, 
+        data.areTokensLeaking(cpg, taint_tags.sinks("LOGGER"), encryptFunction)).asJson.spaces2
+}
+
+def createResults(jarFile: String, dirPath: String) = {
+    val tokensLeakFile = dirPath + java.io.File.separator + "DATA_leak_tokens.json"
+    val writer = new java.io.PrintWriter(new java.io.File(tokensLeakFile))
+    writer.write(areTokensLeakingToLogs(cpg, None))
+    writer.close()
+    tokensLeakFile
 }
 
 @doc("")
