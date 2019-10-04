@@ -1,14 +1,11 @@
 /* ROOTKITS_suspicious_literals
- *
- * Version: 0.0.1
- * Ocular Version: 0.3.34
- * Author: Chetan Conikee <chetan@shiftLeft.io>
- * Execution-mode : Internal
- * Input: Application CPG
- * Output: JSON
- * 
- * Description: 
- * 
+
+   Version: 0.0.1
+   Ocular Version: 0.3.70
+   Author: Chetan Conikee <chetan@shiftLeft.io>
+   Input: Application JAR/WAR/EAR
+   Output: JSON
+
  */
 
 import $ivy.`com.github.javaparser:javaparser-core:2.0.0`
