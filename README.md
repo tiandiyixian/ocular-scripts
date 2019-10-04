@@ -20,3 +20,5 @@ Import/Copy these scripts into your Ocular standard distribution. Remember to ba
 If you do not have a standard distribution, request for a full featured trial distribution of Ocular from [here](https://go.shiftleft.io/ocular-free-trial])
 
 All scripts are written using [Ocular's query language](https://ocular.shiftleft.io) and can be executed in either interactive or autonomous mode. Refer to `README` in each of the language module folder for further details.
+
+![Scripts Screencast](executing-scripts.gif)
